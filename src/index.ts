@@ -15,8 +15,8 @@ interface postToSourceProps {
 }
 
 interface DeliverProps {
-  keeperUrl: string;
-  imgUrls: string[];
+  keeperUrl?: string;
+  imgUrls?: string[];
   analyticsData?: object;
   requestTimeout?: number;
   repeatInterval?: number;
@@ -50,18 +50,20 @@ const waitImage = (url: string) => new Promise((resolve, reject) => {
   img.src = urlInstance.href;
 });
 
-export default async function deliver({ analyticsData = {}, keeperUrl, imgUrls, requestTimeout = 10000, repeat = 3, repeatInterval = 60000 }: DeliverProps) {
+export default async function deliver({ analyticsData = {}, keeperUrl = '', imgUrls = [], requestTimeout = 10000, repeat = 3, repeatInterval = 60000 }: DeliverProps) {
   try {
-    let analyticsSent;
+    let analyticsSent: any;
     let interval: NodeJS.Timeout;
     let currentStep = repeat;
 
     const run = async () => {
       currentStep--;
 
-      analyticsSent = await postToSource({ url: keeperUrl, analyticsData, requestTimeout });
+      if (keeperUrl) {
+        analyticsSent = await postToSource({ url: keeperUrl, analyticsData, requestTimeout });
+      }
 
-      if (!analyticsSent) {
+      if (!analyticsSent && imgUrls.length) {
         for (const url of imgUrls) {
           try {
             analyticsSent = await waitImage(url);
