@@ -18,8 +18,7 @@
     "prepare": "tsdx build"
   },
   "peerDependencies": {
-    "axios": "^0.20.0",
-    "uuid": "8.x"
+    "axios": "0.x"
   },
   "husky": {
     "hooks": {

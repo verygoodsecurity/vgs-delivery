@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { v4 } from 'uuid';
 
 const img = document.createElement('img');
 img.width = 2;
@@ -42,8 +41,8 @@ const postToSource = ({ url, analyticsData, requestTimeout, debug }: postToSourc
 
 const waitImage = (url: string) => new Promise((resolve, reject) => {
   const urlInstance = new URL(url);
-  const cacheFree = v4();
-  urlInstance.searchParams.set('cacheFree', cacheFree);
+  const cacheFree = Math.random() * 1000000000;
+  urlInstance.searchParams.set('cacheFree', `${cacheFree}`);
   img.onerror = () => {
     reject(`${url} request failed`);
   };
