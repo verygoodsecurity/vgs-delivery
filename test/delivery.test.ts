@@ -1,6 +1,7 @@
+import deliver from "../src";
 
-describe('blah', () => {
-  it('works', () => {
-    expect(2).toEqual(2);
+describe('delivery', () => {
+  it('works for valid url', () => {
+    expect(deliver({})).resolves.not.toThrow();
   });
 });
