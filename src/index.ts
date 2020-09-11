@@ -27,7 +27,7 @@ const postToSource = ({ url, analyticsData, requestTimeout }: postToSourceProps)
   method: 'post',
   timeout: requestTimeout,
   // @ts-ignore
-  body: JSON.stringify(analyticsData),
+  body: analyticsData,
 })
   .then(() => {
     return url;
