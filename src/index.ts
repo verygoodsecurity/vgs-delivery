@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { waitImage } from "./waitImage";
 
 const img = document.createElement('img');
 img.width = 2;
@@ -39,20 +40,6 @@ const postToSource = ({ url, analyticsData, requestTimeout, debug }: postToSourc
     }
   });
 
-const waitImage = (url: string) => new Promise((resolve, reject) => {
-  const urlInstance = new URL(url);
-  const cacheFree = Math.random() * 1000000000;
-  urlInstance.searchParams.set('cacheFree', `${cacheFree}`);
-  img.onerror = () => {
-    reject(`${url} request failed`);
-  };
-  img.onload = () => {
-    resolve(url);
-  };
-
-  img.src = urlInstance.href;
-});
-
 export default async function deliver({ analyticsData = {}, keeperUrl = '', imgUrls = [], requestTimeout = 10000, repeat = 3, repeatInterval = 60000, debug = false }: DeliverProps) {
   let analyticsSent: any;
   let interval: NodeJS.Timeout;
@@ -68,7 +55,7 @@ export default async function deliver({ analyticsData = {}, keeperUrl = '', imgU
     if (!analyticsSent && imgUrls.length) {
       for (const url of imgUrls) {
         try {
-          analyticsSent = await waitImage(url);
+          analyticsSent = await waitImage(img, url);
         } catch (e) {
           if (debug) {
             console.error(e);
@@ -91,7 +78,7 @@ export default async function deliver({ analyticsData = {}, keeperUrl = '', imgU
     if (currentStep <= 0) {
       clearInterval(interval);
       if (!analyticsSent) {
-        throw new Error(`all methods failed ${repeat} times`)
+        throw new Error(`all methods failed ${repeat} times`);
       }
     }
   };
