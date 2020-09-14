@@ -28,8 +28,7 @@ interface DeliverProps {
 const postToSource = ({ url, analyticsData, requestTimeout, debug }: postToSourceProps) => axios(url, {
   method: 'post',
   timeout: requestTimeout,
-  // @ts-ignore
-  body: analyticsData,
+  data: analyticsData,
 })
   .then(() => {
     return url;
