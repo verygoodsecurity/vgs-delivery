@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { waitImage } from "./waitImage";
+import { waitImage } from './waitImage';
 
 const img = document.createElement('img');
 img.width = 2;
@@ -25,21 +25,35 @@ interface DeliverProps {
   debug?: boolean;
 }
 
-const postToSource = ({ url, analyticsData, requestTimeout, debug }: postToSourceProps) => axios(url, {
-  method: 'post',
-  timeout: requestTimeout,
-  data: analyticsData,
-})
-  .then(() => {
-    return url;
+const postToSource = ({
+  url,
+  analyticsData,
+  requestTimeout,
+  debug,
+}: postToSourceProps) =>
+  axios(url, {
+    method: 'post',
+    timeout: requestTimeout,
+    data: analyticsData,
   })
-  .catch(e => {
-    if (debug) {
-      console.error(`${url} timeout exceeded`, e);
-    }
-  });
+    .then(() => {
+      return url;
+    })
+    .catch(e => {
+      if (debug) {
+        console.error(`${url} timeout exceeded`, e);
+      }
+    });
 
-export default async function deliver({ analyticsData = {}, keeperUrl = '', imgUrls = [], requestTimeout = 10000, repeat = 3, repeatInterval = 60000, debug = false }: DeliverProps) {
+export default async function deliver({
+  analyticsData = {},
+  keeperUrl = '',
+  imgUrls = [],
+  requestTimeout = 10000,
+  repeat = 3,
+  repeatInterval = 60000,
+  debug = false,
+}: DeliverProps) {
   let analyticsSent: any;
   let interval: NodeJS.Timeout;
   let currentStep = repeat;
@@ -48,7 +62,12 @@ export default async function deliver({ analyticsData = {}, keeperUrl = '', imgU
     currentStep--;
 
     if (keeperUrl) {
-      analyticsSent = await postToSource({ url: keeperUrl, analyticsData, requestTimeout, debug });
+      analyticsSent = await postToSource({
+        url: keeperUrl,
+        analyticsData,
+        requestTimeout,
+        debug,
+      });
     }
 
     if (!analyticsSent && imgUrls.length) {
@@ -87,4 +106,3 @@ export default async function deliver({ analyticsData = {}, keeperUrl = '', imgU
     interval = setInterval(run, repeatInterval);
   }
 }
-
