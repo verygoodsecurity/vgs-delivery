@@ -94,7 +94,7 @@ export default async function deliver({
     if (!analyticsSent) {
       return await sendViaImageUrl();
     }
-  }
+  };
 
   const run = async () => {
     currentStep--;
