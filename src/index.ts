@@ -58,6 +58,44 @@ export default async function deliver({
   let interval: NodeJS.Timeout;
   let currentStep = repeat;
 
+  const getImageFromUrls = imgUrls.slice();
+
+  // @ts-ignore
+  const sendViaImageUrl = async () => {
+    if (!getImageFromUrls.length) {
+      return;
+    }
+
+    if (analyticsSent) {
+      clearInterval(interval);
+      if (debug) {
+        console.info(`analytics request for ${analyticsSent} was successful`);
+      }
+      return;
+    }
+
+    if (currentStep <= 0) {
+      clearInterval(interval);
+      if (!analyticsSent) {
+        throw new Error(`all methods failed ${repeat} times`);
+      }
+    }
+
+    const url = getImageFromUrls.shift() || '';
+
+    try {
+      analyticsSent = await waitImage(img, url);
+    } catch (e) {
+      if (debug) {
+        console.error(e);
+      }
+    }
+
+    if (!analyticsSent) {
+      return await sendViaImageUrl();
+    }
+  }
+
   const run = async () => {
     currentStep--;
 
@@ -70,35 +108,7 @@ export default async function deliver({
       });
     }
 
-    if (!analyticsSent && imgUrls.length) {
-      for (const url of imgUrls) {
-        try {
-          analyticsSent = await waitImage(img, url);
-        } catch (e) {
-          if (debug) {
-            console.error(e);
-          }
-        }
-
-        if (analyticsSent) {
-          break;
-        }
-      }
-    }
-
-    if (analyticsSent) {
-      clearInterval(interval);
-      if (debug) {
-        console.info(`analytics request for ${analyticsSent} was successful`);
-      }
-    }
-
-    if (currentStep <= 0) {
-      clearInterval(interval);
-      if (!analyticsSent) {
-        throw new Error(`all methods failed ${repeat} times`);
-      }
-    }
+    await sendViaImageUrl();
   };
 
   await run();
