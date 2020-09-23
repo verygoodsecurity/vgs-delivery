@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { waitImage } from "./waitImage";
+import { waitImage } from './waitImage';
 
 const img = document.createElement('img');
 img.width = 2;
@@ -25,46 +25,45 @@ interface DeliverProps {
   debug?: boolean;
 }
 
-const postToSource = ({ url, analyticsData, requestTimeout, debug }: postToSourceProps) => axios(url, {
-  method: 'post',
-  timeout: requestTimeout,
-  data: analyticsData,
-})
-  .then(() => {
-    return url;
+const postToSource = ({
+  url,
+  analyticsData,
+  requestTimeout,
+  debug,
+}: postToSourceProps) =>
+  axios(url, {
+    method: 'post',
+    timeout: requestTimeout,
+    data: analyticsData,
   })
-  .catch(e => {
-    if (debug) {
-      console.error(`${url} timeout exceeded`, e);
-    }
-  });
+    .then(() => {
+      return url;
+    })
+    .catch(e => {
+      if (debug) {
+        console.error(`${url} timeout exceeded`, e);
+      }
+    });
 
-export default async function deliver({ analyticsData = {}, keeperUrl = '', imgUrls = [], requestTimeout = 10000, repeat = 3, repeatInterval = 60000, debug = false }: DeliverProps) {
+export default async function deliver({
+  analyticsData = {},
+  keeperUrl = '',
+  imgUrls = [],
+  requestTimeout = 10000,
+  repeat = 3,
+  repeatInterval = 60000,
+  debug = false,
+}: DeliverProps) {
   let analyticsSent: any;
   let interval: NodeJS.Timeout;
   let currentStep = repeat;
 
-  const run = async () => {
-    currentStep--;
+  const getImageFromUrls = imgUrls.slice();
 
-    if (keeperUrl) {
-      analyticsSent = await postToSource({ url: keeperUrl, analyticsData, requestTimeout, debug });
-    }
-
-    if (!analyticsSent && imgUrls.length) {
-      for (const url of imgUrls) {
-        try {
-          analyticsSent = await waitImage(img, url);
-        } catch (e) {
-          if (debug) {
-            console.error(e);
-          }
-        }
-
-        if (analyticsSent) {
-          break;
-        }
-      }
+  // @ts-ignore
+  const sendViaImageUrl = async () => {
+    if (!getImageFromUrls.length) {
+      return;
     }
 
     if (analyticsSent) {
@@ -72,6 +71,7 @@ export default async function deliver({ analyticsData = {}, keeperUrl = '', imgU
       if (debug) {
         console.info(`analytics request for ${analyticsSent} was successful`);
       }
+      return;
     }
 
     if (currentStep <= 0) {
@@ -80,6 +80,35 @@ export default async function deliver({ analyticsData = {}, keeperUrl = '', imgU
         throw new Error(`all methods failed ${repeat} times`);
       }
     }
+
+    const url = getImageFromUrls.shift() || '';
+
+    try {
+      analyticsSent = await waitImage(img, url);
+    } catch (e) {
+      if (debug) {
+        console.error(e);
+      }
+    }
+
+    if (!analyticsSent) {
+      return await sendViaImageUrl();
+    }
+  };
+
+  const run = async () => {
+    currentStep--;
+
+    if (keeperUrl) {
+      analyticsSent = await postToSource({
+        url: keeperUrl,
+        analyticsData,
+        requestTimeout,
+        debug,
+      });
+    }
+
+    await sendViaImageUrl();
   };
 
   await run();
@@ -87,4 +116,3 @@ export default async function deliver({ analyticsData = {}, keeperUrl = '', imgU
     interval = setInterval(run, repeatInterval);
   }
 }
-
