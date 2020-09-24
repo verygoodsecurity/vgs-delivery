@@ -2,7 +2,7 @@ name: CI
 
 on: [ pull_request ]
 jobs:
-  build:
+  Build and Test:
     runs-on: ubuntu-latest
 
     steps:

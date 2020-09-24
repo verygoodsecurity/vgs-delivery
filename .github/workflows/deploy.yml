@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
 jobs:
-  build:
+  Build and Publish:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,5 +28,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Publish
-        run: npm publish
+      - name: Set npm registy and Publish the package
+        run: |
+          echo '//registry.npmjs.org/:_authToken=${{ secrets.NPM_PROFILE_AUTHTOKEN }}' >> ~/.npmrc
+          npm publish
