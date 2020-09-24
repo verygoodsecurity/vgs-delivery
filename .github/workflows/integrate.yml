@@ -33,6 +33,8 @@ jobs:
           file-url: https://unpkg.com/vgs-delivery@latest/package.json
           static-checking: localIsNew
 
-      - name: Log when unchanged
+      - name: Log when npm version is unchanged.
         if: steps.check.outputs.changed != 'true'
-        run: exit 1
+        run: |
+          echo 'Package version need to be updated. Run - npm version patch. Commit the changes'
+          exit 1
